@@ -119,6 +119,9 @@ struct cpufreq_policy {
 	 */
 	bool			fast_switch_possible;
 	bool			fast_switch_enabled;
+	
+	/* Boost switch for tasks with p->in_iowait set */
+	bool iowait_boost_enable;
 
 	/*
 	 * Preferred average time interval between consecutive invocations of
