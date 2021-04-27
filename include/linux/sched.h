@@ -2215,6 +2215,9 @@ struct task_struct {
 	 */
 	randomized_struct_fields_end
 
+#ifdef CONFIG_ANDROID_SIMPLE_LMK
+	struct task_struct		*simple_lmk_next;
+#endif
 /* CPU-specific state of this task */
 	struct thread_struct thread;
 /*
