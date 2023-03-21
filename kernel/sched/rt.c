@@ -3002,7 +3002,6 @@ void __init init_sched_rt_class(void)
 		zalloc_cpumask_var_node(&per_cpu(local_cpu_mask, i),
 					GFP_KERNEL, cpu_to_node(i));
 	}
-
 }
 #endif /* CONFIG_SMP */
 
