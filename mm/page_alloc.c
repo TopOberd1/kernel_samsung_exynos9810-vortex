@@ -3172,22 +3172,31 @@ static inline bool zone_watermark_fast(struct zone *z, unsigned int order,
 {
 	long free_pages = zone_page_state(z, NR_FREE_PAGES);
 
-	/*
-	 * Fast check for order-0 only. If this fails then the reserves
-	 * need to be calculated.
-	 */
-	if (!order) {
-		long fast_free;
+	free_pages = zone_page_state(z, NR_FREE_PAGES);
 
-		fast_free = free_pages;
-		fast_free -= __zone_watermark_unusable_free(z, 0, alloc_flags);
 #ifdef CONFIG_MIGRATE_HIGHORDER
-                fast_free -= highorder_pages;
+	if (!(alloc_flags & ALLOC_HIGHORDER))
+		highorder_pages = zone_page_state(z, NR_FREE_HIGHORDER_PAGES);
 #endif
-		if (fast_free > mark + z->lowmem_reserve[classzone_idx])
-			return true;
-	}
+        /*
+         * Fast check for order-0 only. If this fails then the reserves
+         * need to be calculated.
+         */
+        if (!order) {
+                long usable_free;
+                long reserved;
 
+                usable_free = free_pages;
+                reserved = __zone_watermark_unusable_free(z, 0, alloc_flags);
+
+                /* reserved may overestimate high-atomic reserves */
+                usable_free -= min(usable_free, reserved);
+#ifdef CONFIG_MIGRATE_HIGHORDER
+                usable_free -= highorder_pages;
+#endif
+                if (usable_free > mark + z->lowmem_reserve[classzone_idx])
+                        return true;
+        }
 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
 					free_pages);
 }
