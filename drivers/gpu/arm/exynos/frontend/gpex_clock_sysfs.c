@@ -24,9 +24,12 @@
 #include <gpex_utils.h>
 #include <gpex_clboost.h>
 
+#include <linux/regulator/consumer.h>
+
 #include "gpex_clock_internal.h"
 
 static struct _clock_info *clk_info;
+static struct regulator *g3d_regulator;
 
 /*************************************
  * sysfs node functions
@@ -486,9 +489,68 @@ GPEX_STATIC ssize_t show_gpu_freq_table(char *buf)
 }
 CREATE_SYSFS_KOBJECT_READ_FUNCTION(show_gpu_freq_table)
 
+GPEX_STATIC ssize_t show_unlock_freqs(char *buf)
+{
+	ssize_t len = 0;
+	bool unlock;
+
+	unlock = clk_info->unlock_freqs;
+
+	len += snprintf(buf + len, PAGE_SIZE - len, "%d", unlock);
+
+	return gpex_utils_sysfs_endbuf(buf, len);
+}
+CREATE_SYSFS_DEVICE_READ_FUNCTION(show_unlock_freqs)
+
+GPEX_STATIC ssize_t set_unlock_freqs(const char *buf, size_t count)
+{
+	bool unlock = false;
+	int ret;
+
+	ret = kstrtobool(buf, &unlock);
+	if (ret) {
+		GPU_LOG(MALI_EXYNOS_WARNING, "%s: invalid value\n", __func__);
+		return -ENOENT;
+	}
+
+	clk_info->unlock_freqs = unlock;
+
+	clk_info->user_max_lock_input = 0;
+	gpex_clock_lock_clock(GPU_CLOCK_MAX_UNLOCK, SYSFS_LOCK, 0);
+
+	return count;
+}
+CREATE_SYSFS_DEVICE_WRITE_FUNCTION(set_unlock_freqs)
+
+GPEX_STATIC ssize_t show_volt(char *buf)
+{
+	ssize_t len = 0;
+	int volt = 0;
+
+	gpex_pm_lock();
+	if (g3d_regulator)
+		volt = regulator_get_voltage(g3d_regulator);
+	else if (gpex_pm_get_status(false))
+		volt = clk_info->table[gpex_clock_get_table_idx(gpex_clock_get_clock_slow())].voltage;
+	gpex_pm_unlock();
+
+	if (volt < 0)
+		volt = 0;
+
+	len += snprintf(buf + len, PAGE_SIZE - len, "%d", volt);
+
+	return gpex_utils_sysfs_endbuf(buf, len);
+}
+CREATE_SYSFS_DEVICE_READ_FUNCTION(show_volt)
+CREATE_SYSFS_KOBJECT_READ_FUNCTION(show_volt)
+
 int gpex_clock_sysfs_init(struct _clock_info *_clk_info)
 {
 	clk_info = _clk_info;
+	g3d_regulator = regulator_get(NULL, "vdd_g3d");
+
+	if (IS_ERR(g3d_regulator))
+		g3d_regulator = NULL;
 
 	GPEX_UTILS_SYSFS_DEVICE_FILE_ADD(clock, show_clock, set_clock);
 	GPEX_UTILS_SYSFS_DEVICE_FILE_ADD_RO(asv_table, show_asv_table);
@@ -497,6 +559,8 @@ int gpex_clock_sysfs_init(struct _clock_info *_clk_info)
 	GPEX_UTILS_SYSFS_DEVICE_FILE_ADD(dvfs_min_lock, show_min_lock_dvfs, set_min_lock_dvfs);
 	GPEX_UTILS_SYSFS_DEVICE_FILE_ADD_RO(dvfs_max_lock_status, show_max_lock_status);
 	GPEX_UTILS_SYSFS_DEVICE_FILE_ADD_RO(dvfs_min_lock_status, show_min_lock_status);
+	GPEX_UTILS_SYSFS_DEVICE_FILE_ADD(unlock_freqs, show_unlock_freqs, set_unlock_freqs);
+	GPEX_UTILS_SYSFS_DEVICE_FILE_ADD_RO(volt, show_volt);
 
 	GPEX_UTILS_SYSFS_KOBJECT_FILE_ADD(gpu_max_clock, show_max_lock_dvfs_kobj,
 					  set_max_lock_dvfs);
@@ -506,6 +570,7 @@ int gpex_clock_sysfs_init(struct _clock_info *_clk_info)
 					  set_mm_min_lock_dvfs);
 	GPEX_UTILS_SYSFS_KOBJECT_FILE_ADD_RO(gpu_clock, show_clock);
 	GPEX_UTILS_SYSFS_KOBJECT_FILE_ADD_RO(gpu_freq_table, show_gpu_freq_table);
+	GPEX_UTILS_SYSFS_KOBJECT_FILE_ADD_RO(gpu_volt, show_volt);
 
 	return 0;
 }
