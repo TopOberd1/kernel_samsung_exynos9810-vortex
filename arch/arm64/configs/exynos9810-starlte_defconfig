@@ -1,5 +1,9 @@
+# for adding default margin uv values add in cmdline e.g. "big=-6 lit=-7 g3d=-8 mif=-3"
+#CONFIG_CMDLINE=
+#CONFIG_CMDLINE_EXTEND=y
+
 CONFIG_TOOLS_SUPPORT_RELR=y
-CONFIG_LOCALVERSION="-everest-ies"
+CONFIG_LOCALVERSION="-vortex"
 CONFIG_POSIX_MQUEUE=y
 # CONFIG_FHANDLE is not set
 CONFIG_AUDIT=y
