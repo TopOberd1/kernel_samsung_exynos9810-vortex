@@ -77,11 +77,11 @@ u64 gpex_clock_get_time_busy(int level)
 {
 	return clk_info.table[level].time_busy;
 }
-bool gpex_clock_get_unlock_freqs_status()
+bool gpex_clock_get_unlock_freqs_status(void)
 {
 	return clk_info.unlock_freqs;
 }
-int gpex_clock_update_config_data_from_dt()
+int gpex_clock_update_config_data_from_dt(void)
 {
 	int ret = 0;
 	struct freq_volt *fv_array;
