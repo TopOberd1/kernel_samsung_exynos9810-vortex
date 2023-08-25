@@ -438,31 +438,6 @@ static const struct attribute_group percent_margin_group = {
 	.attrs = percent_margin_attrs,
 };
 
-static void optimize_rate_volt_table(struct rate_volt_header *head, unsigned int num_of_lv) {
-	bool changed;
-	int i;
-
-	/* optimize voltages */
-	while (true) {
-		changed = false;
-
-		for (i = 1; i < num_of_lv; i++) {
-			/* switch voltages if higher frequency uses less */
-			if (head->table[i].volt > head->table[i-1].volt) {
-				int temp_volt = head->table[i-1].volt;
-
-				head->table[i-1].volt = head->table[i].volt;
-				head->table[i].volt = temp_volt;
-
-				changed = true;
-			}
-		}
-
-		if (!changed)
-			break;
-	}
-}
-
 static inline ssize_t print_fvmap(char *buf, int start, int end)
 {
 	volatile struct fvmap_header *fvmap_header;
