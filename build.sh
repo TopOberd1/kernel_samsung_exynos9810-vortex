@@ -1,5 +1,5 @@
 PATH="/home/alebe/toolchains/neutron-clang/bin:${PATH}" \
-make -j6 O=out \
+make -j16 \
  	ARCH=arm64 \
 	CC=clang \
  	LD=ld.lld \
