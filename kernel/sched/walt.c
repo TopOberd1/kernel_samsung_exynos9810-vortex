@@ -620,7 +620,8 @@ static void update_history(struct rq *rq, struct task_struct *p,
 		if (task_on_rq_queued(p))
 			p->sched_class->fixup_cumulative_runnable_avg(rq, p,
 								      demand);
-
+		else if (rq->curr == p)
+			p->sched_class->walt_fixup_cum_window_demand(rq, demand);
 	}
 
 	p->ravg.demand = demand;

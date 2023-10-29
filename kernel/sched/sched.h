@@ -2455,3 +2455,10 @@ walt_task_in_cum_window_demand(struct rq *rq, struct task_struct *p)
 #else /* arch_scale_freq_capacity */
 #define arch_scale_freq_invariant()	(false)
 #endif
+
+static inline void walt_fixup_cum_window_demand(struct rq *rq, s64 scaled_delta)
+{
+	rq->cum_window_demand += scaled_delta;
+	if (unlikely((s64)rq->cum_window_demand < 0))
+		rq->cum_window_demand = 0;
+}
