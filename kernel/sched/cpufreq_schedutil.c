@@ -21,7 +21,8 @@
 #include "sched.h"
 #include "tune.h"
 
-unsigned long boosted_cpu_util(int cpu);
+extern unsigned long
+boosted_cpu_util(int cpu, struct sched_walt_cpu_load *walt_load);
 
 /* Stub out fast switch routines present on mainline to reduce the backport
  * overhead. */
