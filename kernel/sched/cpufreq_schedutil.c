@@ -287,15 +287,13 @@ static inline bool use_pelt(void)
 #endif
 }
 
-unsigned int sched_rt_remove_ratio_for_freq = 0;
-
-static void sugov_get_util(unsigned long *util, unsigned long *max, u64 time)
+static void sugov_get_util(unsigned long *util, unsigned long *max, int cpu)
 {
-	int cpu = smp_processor_id();
-	unsigned long max_cap;
-	unsigned long rt_avg = cpu_rq(cpu)->rt.avg.util_avg;
+	struct rq *rq = cpu_rq(cpu);
+	unsigned long cfs_max;
+	struct sugov_cpu *loadcpu = &per_cpu(sugov_cpu, cpu);
 
-	max_cap = arch_scale_cpu_capacity(NULL, cpu);
+	cfs_max = arch_scale_cpu_capacity(NULL, cpu);
 
 	*util = min(rq->cfs.avg.util_avg, cfs_max);
 	*max = cfs_max;
