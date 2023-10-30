@@ -40,6 +40,7 @@
 atomic_long_t nr_vmalloc_pages;
 
 #include "internal.h"
+#include "showmem_extra.c"
 
 struct vfree_deferred {
 	struct llist_head list;
