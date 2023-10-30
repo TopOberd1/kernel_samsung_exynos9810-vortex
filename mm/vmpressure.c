@@ -148,7 +148,6 @@ static unsigned long vmpressure_calc_pressure(unsigned long scanned,
 	pressure = scale - (reclaimed * scale / scanned);
 	pressure = pressure * 100 / scale;
 
-	vmpr->pressure = pressure;
 out:
 	pr_debug("%s: %3lu  (s: %lu  r: %lu)\n", __func__, pressure,
 		 scanned, reclaimed);
